@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -8,29 +8,30 @@ db = SQLAlchemy(app)
 
 
 class User(db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True)
-    password = db.Column(db.String(100))
-
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    username = db.Column(db.String)
+    password = db.Column(db.String)
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET','POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    return render_template('login.html')
 
-        user = User.query.filter_by(username=username).first()
-        if user and password == user.password:
-            session['username'] = username
-            return redirect(url_for('llm_detection'))
 
-        return render_template('login.html', message='Invalid username or password')
+@app.route('/login', methods=['GET','POST'])
+def login_check():
+    username = request.form['username']
+    password = request.form['password']
 
-    return render_template('login.html', message='')
+    user = User.query.filter_by(username=username).first()
+
+    if user and user.password == password:
+        session['username'] = username
+        return redirect(url_for('llm_detection'))
+    else:
+        flash('Incorrect username or password. Please try again.', 'error')
+        return render_template('login.html')
 
 
 @app.route('/llm_detection')
