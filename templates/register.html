@@ -1,16 +1,16 @@
-<!-- login.html -->
+<!-- register.html -->
 {% extends 'base.html' %}
 
-{% block title %}Login{% endblock %}
+{% block title %}register{% endblock %}
 
 {% block style %}
-<!-- Add the link to the login.css file -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<!-- Add the link to the register.css file -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 {% endblock %}
 
 {% block script %}
-<!-- Add the link to the login.js file -->
-<script src="{{ url_for('static', filename='js/login.js') }}"></script>
+<!-- Add the link to the register.js file -->
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -28,8 +28,8 @@
 {% endwith %}
 <div class="container">
     <div class="col-md-6">
-        <h2>Login</h2>
-        <form action="{{ url_for('login_check') }}" method="POST" id="login-form">
+        <h2>Register</h2>
+        <form action="{{ url_for('register') }}" method="POST" id="register-form">
             <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" class="form-control" id="username" name="username">
@@ -38,13 +38,17 @@
                 <label for="password">Password:</label>
                 <input type="password" class="form-control" id="password" name="password">
             </div>
-            <button type="submit" class="btn btn-primary">Login</button>
+            <div class="form-group">
+                <label for="password2">Password Again:</label>
+                <input type="password" class="form-control" id="password2" name="password2">
+            </div>
+            <button type="submit" class="btn btn-primary">Register</button>
         </form>
     </div>
     <div class="col-md-6 mt-5">
-        <h2>Create Account</h2>
-        <p>Don't have an account? Click below to create one.</p>
-        <a href="{{ url_for('register') }}" class="btn btn-primary">Create Account</a>
+        <h2>Sign in</h2>
+        <p>Already have an account? Click below to sign in.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Sign in</a>
     </div>
 </div>
 {% endblock %}

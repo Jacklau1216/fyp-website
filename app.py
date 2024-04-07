@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+import random
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -27,12 +28,16 @@ def login():
 
 @app.route('/login', methods=['GET','POST'])
 def login_check():
+    if not request.form:
+        return render_template('login.html')
+                
     username = request.form['username']
     password = request.form['password']
 
     user = User.query.filter_by(username=username).first()
     if user and user.password == password:
         session['username'] = username
+        flash("Login successfully", 'info')
         return redirect(url_for('llm_detection'))
     else:
         flash('Incorrect username or password. Please try again.', 'error')
@@ -47,20 +52,42 @@ def llm_detection():
     return render_template('llm_detection.html')
 
 
-@app.route('/register', methods=['POST'])
+@app.route('/register', methods=['GET','POST'])
 def register():
-    new_username = request.form['new_username']
-    new_password = request.form['new_password']
-    print(User.query.all())
-    existing_user = User.query.filter_by(username=new_username).first()
+    username = None
+    
+    if not request.form:
+        return render_template('register.html')
+                
+    username = request.form['username']
+    password = request.form['password']
+    password2 = request.form['password2']
+    
+    existing_user = User.query.filter_by(username=username).first()
     if existing_user:
-        return "Username already exists", 409
-
-    new_user = User(username=new_username, password=new_password)
+        flash('User name have already exist. Please try again.', 'error')
+        return render_template('register.html')
+    
+    if password != password2:
+        flash("Two password don't match. Please try again", 'error')
+        return render_template('register.html')
+        
+    new_user = User(username=username, password=password)
     db.session.add(new_user)
     db.session.commit()
 
-    return "Registration successful", 200
+    flash("Register successfully", 'info')
+    return redirect(url_for('llm_detection'))
+
+@app.route('/detect', methods=['POST'])
+def detect():
+    text = request.form['text']
+    # Perform LLM detection logic
+    def detect():
+        return [random.randint(0,100)]
+    result = detect()
+    
+    return result
 
 
 if __name__ == '__main__':
