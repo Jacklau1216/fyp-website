@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login</title>
+</head>
+<body>
+    <h1>Login</h1>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+    <form id="login-form" method="POST" action="/">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password"><br><br>
+        <input type="submit" value="Login">
+    </form>
+    <br>
+    <h2>Register</h2>
+    <form id="register-form" method="POST" action="/register">
+        <label for="new-username">New Username:</label>
+        <input type="text" id="new-username" name="new_username"><br><br>
+        <label for="new-password">New Password:</label>
+        <input type="password" id="new-password" name="new_password"><br><br>
+        <input type="submit" value="Register">
+    </form>
+    <script>
+        document.getElementById("login-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/");
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    window.location.href = "/llm_detection";
+                } else if (xhr.readyState === 4 && xhr.status === 401) {
+                    document.getElementById("login-form").reset();
+                    alert("Invalid username or password");
+                }
+            };
+            xhr.send("username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password));
+        });
+
+        document.getElementById("register-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+            var newUsername = document.getElementById("new-username").value;
+            var newPassword = document.getElementById("new-password").value;
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/register");
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    alert("Registration successful. Please login.");
+                    document.getElementById("register-form").reset();
+                } else if (xhr.readyState === 4 && xhr.status === 409) {
+                    document.getElementById("register-form").reset();
+                    alert("Username already exists. Please choose a different username.");
+                }
+            };
+            xhr.send("new_username=" + encodeURIComponent(newUsername) + "&new_password=" + encodeURIComponent(newPassword));
+        });
+    </script>
+</body>
+</html>
