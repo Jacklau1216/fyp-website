@@ -7,7 +7,10 @@ $(document).ready(function() {
             data: { text: text },
             success: function(response) {
                 console.log("GLTR_detect");
-                drawHistogram("topKCount",Object.keys(response),Object.values(response),"topKCount");
+                drawTopK("topKCount",Object.keys(response.topk),Object.values(response.topk),"topKCount",0);
+                drawTopK("fracPHistogram",Object.keys(response.fracp),Object.values(response.fracp),"Frac(p)",1);
+                drawTopK("top10Entropy",Object.keys(response.top10Entropy),Object.values(response.top10Entropy),"Top 10 Entropy",2);
+
             },
             error: function(xhr, status, error) {
                 console.log(error);
@@ -28,42 +31,3 @@ $(document).ready(function() {
 });
 
 
-function drawHistogram(canvasId, label, data, yAxisLabel) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
-    // Define colors for the first four bars
-    const colors= [
-    '#C5EBAA', // Light Green
-    '#F6F193',  // Light Yellow
-    '#F2C18D',   // Light Red
-    '#DCBFFF', // Light Purple
-    ]
-    // If there are more than 4 data points, default the rest to a standard color
-    for (let i = colors.length; i < data.length; i++) {
-        colors.push('rgba(54, 162, 235, 0.2)'); // Default color for additional bars
-    }
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.map((_, index) => `<${label[index]}`), // Adjust if you want specific labels
-            datasets: [{
-                label: label,
-                data: data,
-                backgroundColor: colors, // Use the colors array here
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: yAxisLabel
-                    }
-                }
-            }
-        }
-    });
-}

@@ -1,9 +1,7 @@
 import time
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from scipy.stats import entropy
 from transformers import (GPT2LMHeadModel, GPT2Tokenizer,
                           BertTokenizer, BertForMaskedLM)
 
@@ -82,26 +80,39 @@ class LM(AbstractLanguageChecker):
         print(f"Loaded GPT-2 model! on {self.device}")
 
     def getTopKCount(self, real_topk, countArray):
+        countArray = list(countArray)
         myMap = {
             n: len([rank for rank, _ in real_topk if rank <= n and (True if i == 0 else (rank > countArray[i - 1]))])
             for (i, n) in enumerate(countArray)}
         return myMap
 
-    def plot_frac_p_histogram(self, real_topk):
-        probabilities = [prob for _, prob in real_topk]
-        plt.hist(probabilities, bins=10, alpha=0.7, color='gray')
-        plt.title('Frac(p) Histogram')
-        plt.xlabel('Probability')
-        plt.ylabel('Frequency')
-        plt.show()
+    def getFracpCount(self, real_topk, pred_topk, countArray):
+        countArray = list(countArray)
+        countArray = [round(i + 0.1, 1) for i in countArray]
+        p = [prob / pred_topk[i][0][1] for i, (rank, prob) in enumerate(real_topk)]
+        myMap = {
+            n: len([_ for _ in p if (_ <= n and (True if i == 0 else (_ > countArray[i - 1]))) or (
+                        _ > countArray[len(countArray) - 1] and i == len(countArray) - 1)])
+            for (i, n) in enumerate(countArray)
+        }
+        return myMap
 
-    def plot_top_10_entropy_histogram(self, pred_topk):
-        entropies = [entropy([prob for _, prob in preds], base=2) for preds in pred_topk]
-        plt.hist(entropies, bins=10, alpha=0.7, color='blue')
-        plt.title('Top 10 Entropy(p) Histogram')
-        plt.xlabel('Entropy')
-        plt.ylabel('Frequency')
-        plt.show()
+    def getTopEntropy(self, pred_topk, countArray):
+        countArray = list(countArray)
+        countArray = [round(i + 0.2, 1) for i in countArray]
+        import math
+
+        entropies = []
+        for preds in pred_topk:
+            top_pred = preds[:10]
+            entropy = -sum(p * math.log2(p) for _, p in top_pred)
+            entropies.append(entropy)
+        myMap = {
+            n: len([_ for _ in entropies if (_ <= n and (True if i == 0 else (_ > countArray[i - 1]))) or (
+                    _ > countArray[len(countArray) - 1] and i == len(countArray) - 1)])
+            for (i, n) in enumerate(countArray)
+        }
+        return myMap
 
     def check_probabilities(self, in_text, topk=40):
         # Process input

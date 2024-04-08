@@ -2,7 +2,7 @@ import random
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-
+from numpy import arange
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.secret_key = '123'
@@ -86,9 +86,13 @@ def GLTR_detect():
     text = request.form['text']
     import myGLTR
     gpt2 = myGLTR.GPT2()
-    data = gpt2.analyze(text)
+    data = gpt2.analyze(text, 40)
     import math
-    return jsonify(gpt2.model.lm.getTopKCount(data["real_topk"],[10,100,1000,math.inf]))
+    m = dict()
+    m["topk"] = gpt2.model.lm.getTopKCount(data["real_topk"], [10, 100, 1000, math.inf])
+    m["fracp"] = gpt2.model.lm.getFracpCount(data["real_topk"], data["pred_topk"], arange(0,1,0.1))
+    m["top10Entropy"] = gpt2.model.lm.getTopEntropy(data["pred_topk"], arange(0,2.4,0.2))
+    return jsonify(m)
 
 
 @app.route('/detect', methods=['POST'])
