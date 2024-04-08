@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy
 import random
+
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -12,11 +13,11 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String)
     password = db.Column(db.String)
-    
+
     def __init__(self, username, password):
         self.username = username
         self.password = password
-    
+
     def __repr__(self):
         return "<User %r>" % self.username
 
@@ -26,11 +27,11 @@ def login():
     return render_template('login.html')
 
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login_check():
     if not request.form:
         return render_template('login.html')
-                
+
     username = request.form['username']
     password = request.form['password']
 
@@ -52,26 +53,26 @@ def llm_detection():
     return render_template('llm_detection.html')
 
 
-@app.route('/register', methods=['GET','POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     username = None
-    
+
     if not request.form:
         return render_template('register.html')
-                
+
     username = request.form['username']
     password = request.form['password']
     password2 = request.form['password2']
-    
+
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
         flash('User name have already exist. Please try again.', 'error')
         return render_template('register.html')
-    
+
     if password != password2:
         flash("Two password don't match. Please try again", 'error')
         return render_template('register.html')
-        
+
     new_user = User(username=username, password=password)
     db.session.add(new_user)
     db.session.commit()
@@ -79,14 +80,27 @@ def register():
     flash("Register successfully", 'info')
     return redirect(url_for('llm_detection'))
 
+
+@app.route("/GLTR_detect", methods=['POST'])
+def GLTR_detect():
+    text = request.form['text']
+    import myGLTR
+    gpt2 = myGLTR.GPT2()
+    data = gpt2.analyze(text)
+    import math
+    return jsonify(gpt2.model.lm.getTopKCount(data["real_topk"],[10,100,1000,math.inf]))
+
+
 @app.route('/detect', methods=['POST'])
 def detect():
     text = request.form['text']
+
     # Perform LLM detection logic
-    def detect():
-        return [random.randint(0,100)]
-    result = detect()
-    
+    def _detect():
+        return [random.randint(0, 100)]
+
+    result = _detect()
+
     return result
 
 
@@ -101,4 +115,3 @@ if __name__ == '__main__':
             db.session.commit()
             print('user created')
     app.run(debug=True)
-    

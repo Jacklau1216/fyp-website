@@ -8,7 +8,9 @@
 {% endblock %}
 
 {% block script %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/detection.js') }}"></script>
+<script src="{{ url_for('static', filename='js/GLTR.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -41,6 +43,11 @@
         <button id="upload-button" class="btn btn-primary">Upload</button>
 
         <div id="result" class="mt-4"></div>
+        <div>
+            <canvas id="topKCount"></canvas>
+            <canvas id="fracPHistogram"></canvas>
+            <canvas id="top10Entropy"></canvas>
+        </div>
     </div>
 </div>
 {% endblock %}
