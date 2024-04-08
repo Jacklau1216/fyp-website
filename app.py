@@ -92,16 +92,32 @@ def register():
 def detect():
     text = request.form['text']
     detection_result = bool(random.getrandbits(1))
-    detection_text = Text(input_text=text,detection_result=detection_result)
-    db.session.add(detection_text)
-    db.session.commit()
-    # Perform LLM detection logic
-    def detect():
-        return str(detection_result).capitalize()
-    result = detect()
-    
-    return result
 
+    existing_text = Text.query.filter_by(input_text=text).first()
+    if existing_text:
+        existing_text.detection_result = detection_result
+    else:
+        detection_text = Text(input_text=text, detection_result=detection_result)
+        db.session.add(detection_text)
+
+    db.session.commit()
+
+    return str(detection_result).capitalize()
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    content = request.form['content']
+
+    existing_text = Text.query.filter_by(input_text=content).first()
+    if existing_text:
+        existing_text.watermark_result = "Generating"
+    else:
+        text_entry = Text(input_text=content, watermark_result="Generating")
+        db.session.add(text_entry)
+
+    db.session.commit()
+
+    return "File uploaded successfully!"
 
 if __name__ == '__main__':
     with app.app_context():
