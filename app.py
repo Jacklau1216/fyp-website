@@ -92,6 +92,14 @@ def GLTR_detect():
     m["topk"] = gpt2.model.lm.getTopKCount(data["real_topk"], [10, 100, 1000, math.inf])
     m["fracp"] = gpt2.model.lm.getFracpCount(data["real_topk"], data["pred_topk"], arange(0,1,0.1))
     m["top10Entropy"] = gpt2.model.lm.getTopEntropy(data["pred_topk"], arange(0,2.4,0.2))
+    m["real_topk"] = data["real_topk"]
+    m["pred_topk"] = data["pred_topk"]
+    m["bpe_strings"] = [i+'&nbsp;' for i in data["bpe_strings"]]
+    # m["bpe_strings"]  = [str(filter(gpt2.model.lm.postprocess,i)) for i in data["bpe_strings"]]
+    m["topk_display"] = list(zip(m["bpe_strings"][1:],[ i[0] for i in data["real_topk"]]))
+    m["pop_up_display"] = [(topk, prob, fp) for ((topk, prob), fp) in zip(data["real_topk"], gpt2.model.lm.getFracp(data["real_topk"],data["pred_topk"]))]
+
+    m["countArray"] = [10,100,1000,10000000]
     return jsonify(m)
 
 

@@ -97,6 +97,10 @@ class LM(AbstractLanguageChecker):
         }
         return myMap
 
+    def getFracp(self, real_topk, pred_topk):
+        p = [prob / pred_topk[i][0][1] for i, (rank, prob) in enumerate(real_topk)]
+        return p
+
     def getTopEntropy(self, pred_topk, countArray):
         countArray = list(countArray)
         countArray = [round(i + 0.2, 1) for i in countArray]
@@ -191,6 +195,13 @@ class LM(AbstractLanguageChecker):
     def postprocess(self, token):
         with_space = False
         with_break = False
+
+
+        if token.startswith('Ġ'):
+            token = token[1:]
+
+        if token.startswith('Ċ'):
+            token = token[1:]
         if token.startswith('Ġ'):
             with_space = True
             token = token[1:]
