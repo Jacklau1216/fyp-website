@@ -1,13 +1,12 @@
 import random
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from numpy import arange
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.secret_key = '123'
 db = SQLAlchemy(app)
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -23,8 +22,8 @@ class User(db.Model):
 
 
 @app.route('/')
-def login():
-    return render_template('login.html')
+def index():
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -37,7 +36,7 @@ def login_check():
 
     user = User.query.filter_by(username=username).first()
     if user and user.password == password:
-        session['username'] = username
+        session['user_login'] = True
         flash("Login successfully", 'info')
         return redirect(url_for('llm_detection'))
     else:
@@ -47,10 +46,15 @@ def login_check():
 
 @app.route('/llm_detection')
 def llm_detection():
-    if 'username' not in session:
-        return redirect(url_for('login'))
+    if not session.get('user_login', False):
+        return redirect(url_for('login_check'))
 
     return render_template('llm_detection.html')
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    session['user_login'] = False
+    return render_template('index.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -76,7 +80,7 @@ def register():
     new_user = User(username=username, password=password)
     db.session.add(new_user)
     db.session.commit()
-
+    session['user_login'] = True
     flash("Register successfully", 'info')
     return redirect(url_for('llm_detection'))
 
