@@ -4,22 +4,32 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_sqlalchemy import SQLAlchemy
 from numpy import arange
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.secret_key = '123'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
+app.config['SECRET_KEY'] = '123'
 db = SQLAlchemy(app)
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String)
-    password = db.Column(db.String)
 
+
+class User(db.Model):
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), unique=True)
+    password = db.Column(db.String(100))
+    
     def __init__(self, username, password):
         self.username = username
         self.password = password
-
-    def __repr__(self):
-        return "<User %r>" % self.username
-
+    
+class Text(db.Model):
+    input_id = db.Column(db.Integer, primary_key=True)
+    input_text = db.Column(db.String,nullable=False)
+    detection_result = db.Column(db.Boolean,nullable=True)
+    watermark_result = db.Column(db.String,nullable=True)
+    
+    # def __init__(self, input_text, detection_result, watermark_result):
+    #     self.input_text = input_text
+    #     self.detection_result = detection_result
+    #     self.watermark_result = watermark_result
+        
 
 @app.route('/')
 def index():
@@ -110,24 +120,35 @@ def GLTR_detect():
 @app.route('/detect', methods=['POST'])
 def detect():
     text = request.form['text']
+    detection_result = bool(random.getrandbits(1))
 
-    # Perform LLM detection logic
-    def _detect():
-        return [random.randint(0, 100)]
+    existing_text = Text.query.filter_by(input_text=text).first()
+    if existing_text:
+        existing_text.detection_result = detection_result
+    else:
+        detection_text = Text(input_text=text, detection_result=detection_result)
+        db.session.add(detection_text)
 
-    result = _detect()
+    db.session.commit()
 
-    return result
+    return str(detection_result).capitalize()
 
+@app.route('/upload', methods=['POST'])
+def upload():
+    content = request.form['content']
+
+    existing_text = Text.query.filter_by(input_text=content).first()
+    if existing_text:
+        existing_text.watermark_result = "Generating"
+    else:
+        text_entry = Text(input_text=content, watermark_result="Generating")
+        db.session.add(text_entry)
+
+    db.session.commit()
+
+    return "File uploaded successfully!"
 
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        # Check if the dummy user already exists
-        dummy_user = User.query.filter_by(username='dummy').first()
-        if not dummy_user:
-            dummy_user = User(username='dummy', password='123')
-            db.session.add(dummy_user)
-            db.session.commit()
-            print('user created')
     app.run(debug=True)

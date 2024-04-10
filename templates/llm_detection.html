@@ -32,13 +32,16 @@
 {% endif %}
 {% endwith %}
 <div class="container">
-    <h1 class="mt-4">LLM Detection</h1>
+    <div class="header-wrapper">
+        <h1 class="mt-4">LLM Detection</h1>
+        <a href="{{ url_for('login') }}" class="btn btn-primary float-right">Logout</a>
+    </div>
     <div id="llm-container" class="mt-4">
         <h2 class="mb-3">Enter Text</h2>
         <div class="form-group">
             <textarea id="text-input" class="form-control" rows="5" placeholder="Enter your paragraph"></textarea>
         </div>
-        <button id="detect-button" class="btn btn-primary">Detect LLM</button>
+        <button id="detect-button" class="btn btn-primary">Detect</button>
 
         <h2 class="mt-4 mb-3">Upload File</h2>
         <div class="custom-file mb-3">
