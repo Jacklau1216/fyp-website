@@ -4,4 +4,9 @@
     margin-top: 100px;
 }
 
+.login{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 /* Add more styles as needed */
