@@ -17,17 +17,17 @@ $(document).ready(function() {
                 console.log(error);
             }
         });
-        $.ajax({
-            url: "/detect",
-            type: "POST",
-            data: { text: text },
-            success: function(response) {
-                $("#result").text("LLM Detection Result: " + response);
-            },
-            error: function(xhr, status, error) {
-                console.log(error);
-            }
-        });
+        // $.ajax({
+        //     url: "/detect",
+        //     type: "POST",
+        //     data: { text: text },
+        //     success: function(response) {
+        //         $("#result").text("LLM Detection Result: " + response);
+        //     },
+        //     error: function(xhr, status, error) {
+        //         console.log(error);
+        //     }
+        // });
     });
 });
 
