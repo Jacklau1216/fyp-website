@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy
 import random
 
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
+from flask_sqlalchemy import SQLAlchemy
+from numpy import arange
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = '123'
@@ -31,21 +32,21 @@ class Text(db.Model):
         
 
 @app.route('/')
-def login():
-    return render_template('login.html')
+def index():
+    return render_template('index.html')
 
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login_check():
     if not request.form:
         return render_template('login.html')
-                
+
     username = request.form['username']
     password = request.form['password']
 
     user = User.query.filter_by(username=username).first()
     if user and user.password == password:
-        session['username'] = username
+        session['user_login'] = True
         flash("Login successfully", 'info')
         return redirect(url_for('llm_detection'))
     else:
@@ -55,38 +56,66 @@ def login_check():
 
 @app.route('/llm_detection')
 def llm_detection():
-    if 'username' not in session:
-        return redirect(url_for('login'))
+    if not session.get('user_login', False):
+        return redirect(url_for('login_check'))
 
     return render_template('llm_detection.html')
 
+@app.route('/logout', methods=['GET'])
+def logout():
+    session['user_login'] = False
+    return render_template('index.html')
 
-@app.route('/register', methods=['GET','POST'])
+
+@app.route('/register', methods=['GET', 'POST'])
 def register():
     username = None
-    
+
     if not request.form:
         return render_template('register.html')
-                
+
     username = request.form['username']
     password = request.form['password']
     password2 = request.form['password2']
-    
+
     existing_user = User.query.filter_by(username=username).first()
     if existing_user:
         flash('User name have already exist. Please try again.', 'error')
         return render_template('register.html')
-    
+
     if password != password2:
         flash("Two password don't match. Please try again", 'error')
         return render_template('register.html')
-        
+
     new_user = User(username=username, password=password)
     db.session.add(new_user)
     db.session.commit()
-
-    flash("Register successfully", 'success')
+    session['user_login'] = True
+    flash("Register successfully", 'info')
     return redirect(url_for('llm_detection'))
+
+
+@app.route("/GLTR_detect", methods=['POST'])
+def GLTR_detect():
+    text = request.form['text']
+    import myGLTR
+    gpt2 = myGLTR.GPT2()
+    data = gpt2.analyze(text, 40)
+    import math
+    m = dict()
+    m["topk"] = gpt2.model.lm.getTopKCount(data["real_topk"], [10, 100, 1000, math.inf])
+    m["fracp"] = gpt2.model.lm.getFracpCount(data["real_topk"], data["pred_topk"], arange(0,1,0.1))
+    m["top10Entropy"] = gpt2.model.lm.getTopEntropy(data["pred_topk"], arange(0,2.4,0.2))
+    m["real_topk"] = data["real_topk"]
+    m["pred_topk"] = data["pred_topk"]
+    m["bpe_strings"] = [i+'&nbsp;' for i in data["bpe_strings"]]
+    # m["bpe_strings"]  = [str(filter(gpt2.model.lm.postprocess,i)) for i in data["bpe_strings"]]
+    m["topk_display"] = list(zip(m["bpe_strings"][1:],[ i[0] for i in data["real_topk"]]))
+    m["pop_up_display"] = [(topk, prob, fp) for ((topk, prob), fp) in zip(data["real_topk"], gpt2.model.lm.getFracp(data["real_topk"],data["pred_topk"]))]
+
+    m["countArray"] = [10,100,1000,10000000]
+    return jsonify(m)
+
 
 @app.route('/detect', methods=['POST'])
 def detect():
@@ -123,4 +152,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True)
-    

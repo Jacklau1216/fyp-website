@@ -6,6 +6,46 @@
     background-color: #f2f2f2;
     border: 1px solid #ccc;
 }
+.GLTR {
+    display: flex;
+    flex-direction: column; /* This ensures that the children of .GLTR are laid out top to bottom */
+}
+
+.GLTR_Charts {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+canvas {
+    max-width: 33%;
+}
+.LMF {
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+}
+.token {
+    display: inline-block;
+    cursor: pointer;
+}
+.token:hover {
+    border: 2px solid #007bff; /* Example: Blue border */
+    box-sizing: border-box; /* Ensures the border doesn't increase the element's size */
+}
+.tooltip {
+    display: block; /* Temporarily make it always visible */
+    position: fixed;
+    background-color: #808080; /* Gray background */
+    color: white;
+    padding: 20px;
+    z-index: 10000; /* High z-index */
+    max-width: 300px;
+    word-wrap: break-word;
+    opacity:100;
+}
+.hidden {
+    display: none;
+}
 .header-wrapper {
     display: flex;
     justify-content: space-between;
