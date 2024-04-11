@@ -5,6 +5,7 @@ transformers
 torch
 numpy
 connexion[swagger-ui]
+connexion[flask]
 flask
 PyYaml
 flask_cors
