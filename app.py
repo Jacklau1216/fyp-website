@@ -75,7 +75,8 @@ def watermark():
 @app.route('/generate', methods=['POST'])
 def generate():
     if not request.form:
-        return "Error"
+        return "Error: not receive any text!"
+    text = request.form['text']
     return "Hi what's up (%s)" % random.randint(0,100)
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -158,6 +159,12 @@ def upload():
     db.session.commit()
 
     return "File uploaded successfully!"
+
+@app.route('/course', methods=['GET'])
+def course():
+    if not session.get('user_login', False):
+            return redirect(url_for('login_check'))
+    return render_template('course.html')
 
 if __name__ == '__main__':
     with app.app_context():
