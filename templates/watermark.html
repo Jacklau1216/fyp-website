@@ -1,0 +1,47 @@
+<!-- llm_detection.html -->
+{% extends 'base.html' %} 
+
+{% block title %}Watermark generation{% endblock %} 
+
+{%block style %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/watermark.css') }}">
+{% endblock %} 
+
+{% block script %}
+<script src="{{ url_for('static', filename='js/watermark.js') }}"></script>
+{% endblock %} 
+
+{% block content%}
+
+<div class="container">
+  <div id="llm-container" class="mt-4">
+    <div class="row">
+      <div class="col">
+        <h2 class="mb-3">Enter Text</h2>
+        <div class="form-group">
+          <textarea
+            id="text-input"
+            class="form-control"
+            rows="5"
+            placeholder="Enter your paragraph"
+          ></textarea>
+        </div>
+      </div>
+      <div class="col">
+        <h2 class="mb-3">Watermarked Text</h2>
+        <div class="form-group">
+          <textarea
+            id="text-output"
+            class="form-control watermark-result"
+            rows="5"
+            placeholder="Text with watermark here"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+    <button id="generate-button" class="btn btn-primary">
+      Generate Watermark
+    </button>
+  </div>
+</div>
+{% endblock %}

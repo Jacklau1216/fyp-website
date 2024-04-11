@@ -66,6 +66,17 @@ def logout():
     session['user_login'] = False
     return render_template('index.html')
 
+@app.route('/watermark', methods=['GET'])
+def watermark():
+    if not session.get('user_login', False):
+        return redirect(url_for('login_check'))
+    return render_template('watermark.html')
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    if not request.form:
+        return "Error"
+    return "Hi what's up (%s)" % random.randint(0,100)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
