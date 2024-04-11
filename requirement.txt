@@ -1,10 +1,15 @@
 flask
 flask_sqlalchemy
 pytorch-pretrained-bert>=0.6.1
-transformers
+transformers==4.38.2
 torch
 numpy
 connexion[swagger-ui]
-flask
 PyYaml
 flask_cors
+pysbd==0.3.4
+clean-text==0.6.0
+scikit-learn==1.4.1.post1
+python-dotenv
+rouge-score
+spacy

@@ -7,7 +7,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = '123'
 db = SQLAlchemy(app)
-
+from detector.ensemble_detector import EnsembleDectector
+detector = EnsembleDectector()
 
 
 class User(db.Model):
@@ -120,7 +121,7 @@ def GLTR_detect():
 @app.route('/detect', methods=['POST'])
 def detect():
     text = request.form['text']
-    detection_result = bool(random.getrandbits(1))
+    detection_result, detection_percentage = detector.detect_text(text)
 
     existing_text = Text.query.filter_by(input_text=text).first()
     if existing_text:
