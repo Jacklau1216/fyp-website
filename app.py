@@ -3,6 +3,8 @@ import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from numpy import arange
+import re
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = '123'
@@ -12,12 +14,15 @@ db = SQLAlchemy(app)
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True)
+    useremail = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
+    role = db.Column(db.Boolean) # 1: staff; 0: student
     
-    def __init__(self, username, password):
-        self.username = username
+    
+    def __init__(self, useremail, password):
+        self.useremail = useremail
         self.password = password
+        self.role = 1 if 'staff' in useremail else 0
     
 class Text(db.Model):
     input_id = db.Column(db.Integer, primary_key=True)
@@ -25,10 +30,6 @@ class Text(db.Model):
     detection_result = db.Column(db.Boolean,nullable=True)
     watermark_result = db.Column(db.String,nullable=True)
     
-    # def __init__(self, input_text, detection_result, watermark_result):
-    #     self.input_text = input_text
-    #     self.detection_result = detection_result
-    #     self.watermark_result = watermark_result
         
 
 @app.route('/')
@@ -41,16 +42,16 @@ def login_check():
     if not request.form:
         return render_template('login.html')
 
-    username = request.form['username']
+    useremail = request.form['useremail']
     password = request.form['password']
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(useremail=useremail).first()
     if user and user.password == password:
         session['user_login'] = True
         flash("Login successfully", 'info')
         return redirect(url_for('llm_detection'))
     else:
-        flash('Incorrect username or password. Please try again.', 'error')
+        flash('Incorrect email or password. Please try again.', 'error')
         return render_template('login.html')
 
 
@@ -66,19 +67,19 @@ def logout():
     session['user_login'] = False
     return render_template('index.html')
 
-
+email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    username = None
+    useremail = None
 
     if not request.form:
         return render_template('register.html')
 
-    username = request.form['username']
+    useremail = request.form['useremail']
     password = request.form['password']
     password2 = request.form['password2']
 
-    existing_user = User.query.filter_by(username=username).first()
+    existing_user = User.query.filter_by(useremail=useremail).first()
     if existing_user:
         flash('User name have already exist. Please try again.', 'error')
         return render_template('register.html')
@@ -87,7 +88,11 @@ def register():
         flash("Two password don't match. Please try again", 'error')
         return render_template('register.html')
 
-    new_user = User(username=username, password=password)
+    if not re.match(email_regex, useremail):
+        flash("Invalid email format. Please try again.", 'error')
+        return render_template('register.html')
+
+    new_user = User(useremail=useremail, password=password)
     db.session.add(new_user)
     db.session.commit()
     session['user_login'] = True
