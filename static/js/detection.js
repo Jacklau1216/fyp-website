@@ -29,34 +29,49 @@ $(document).ready(function() {
             }
         });
     });
-    // Update the label text when a file is selected
-    $("#file-input").change(function() {
-        var fileName = $(this).val().split('\\').pop();
-        $(".custom-file-label").text(fileName);
+    $(function() {
+        $('#upload-file-btn').click(function() {
+            var form_data = new FormData($('#upload-file')[0]);
+            $.ajax({
+                type: 'POST',
+                url: '/upload',
+                data: form_data,
+                contentType: false,
+                cache: false,
+                processData: false,
+                success: function(data) {
+                    console.log('Success!');
+                },
+            });
+        });
     });
-    $("#upload-button").click(function() {
-        var fileInput = document.getElementById("file-input");
-        var file = fileInput.files[0];
-        if (file) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var content = e.target.result;
-                $.ajax({
-                    url: "/upload",
-                    type: "POST",
-                    data: { content: content },
-                    success: function(response) {
-                        console.log("File uploaded successfully!");
-                        $(".custom-file-label").text("Choose file");
+    // $("#file-input").change(function() {
+    //     var fileName = $(this).val().split('\\').pop();
+    //     $(".custom-file-label").text(fileName);
+    // });
+    // $("#upload-button").click(function() {
+    //     var fileInput = document.getElementById("file-input");
+    //     var file = fileInput.files[0];
+    //     if (file) {
+    //         var reader = new FileReader();
+    //         reader.onload = function(e) {
+    //             var content = e.target.result;
+    //             $.ajax({
+    //                 url: "/upload",
+    //                 type: "POST",
+    //                 data: { content: content },
+    //                 success: function(response) {
+    //                     console.log("File uploaded successfully!");
+    //                     $(".custom-file-label").text("Choose file");
 
-                        $(".flash-message").html('<div class="alert alert-success alert-dismissible fade show" role="alert">File uploaded successfully!</div>');
-                    },
-                    error: function(xhr, status, error) {
-                        console.log(error);
-                    }
-                });
-            };
-            reader.readAsBuffer(file);
-        }
-    });
+    //                     $(".flash-message").html('<div class="alert alert-success alert-dismissible fade show" role="alert">File uploaded successfully!</div>');
+    //                 },
+    //                 error: function(xhr, status, error) {
+    //                     console.log(error);
+    //                 }
+    //             });
+    //         };
+    //         reader.readAsBuffer(file);
+    //     }
+    // });
 });

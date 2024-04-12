@@ -1,13 +1,19 @@
 import random
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
 from numpy import arange
 import re
+import os
 
+UPLOAD_FOLDER = 'upload_file'
+ALLOWED_EXTENSIONS = {'txt'}
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = '123'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 db = SQLAlchemy(app)
 
 
@@ -17,16 +23,24 @@ class User(db.Model):
     useremail = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     role = db.Column(db.Boolean) # 1: staff; 0: student
+    course = db.Column(db.String(100),nullable=True)
     
     
     def __init__(self, useremail, password):
         self.useremail = useremail
         self.password = password
         self.role = 1 if 'staff' in useremail else 0
+   
     
 class Text(db.Model):
     input_id = db.Column(db.Integer, primary_key=True)
     input_text = db.Column(db.String,nullable=False)
+    detection_result = db.Column(db.Boolean,nullable=True)
+    watermark_result = db.Column(db.String,nullable=True)
+
+class File(db.Model):
+    file_id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String,nullable=False)
     detection_result = db.Column(db.Boolean,nullable=True)
     watermark_result = db.Column(db.String,nullable=True)
     
@@ -55,7 +69,7 @@ def login_check():
         return render_template('login.html')
 
 
-@app.route('/llm_detection')
+@app.route('/llm_detection', methods=['GET', 'POST'])
 def llm_detection():
     if not session.get('user_login', False):
         return redirect(url_for('login_check'))
@@ -151,21 +165,21 @@ def detect():
 
     return str(detection_result).capitalize()
 
-# @app.route('/upload', methods=['POST'])
-# def upload():
-#     content = request.form['content']
-
-#     existing_text = Text.query.filter_by(input_text=content).first()
-#     if existing_text:
-#         existing_text.watermark_result = "Generating"
-#     else:
-#         text_entry = Text(input_text=content, watermark_result="Generating")
-#         db.session.add(text_entry)
-
-#     db.session.commit()
-
-#     return "File uploaded successfully!"
-
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           
+@app.route('/upload', methods=['POST'])
+def upload():
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        new_file = File(input_file=filename)
+        db.session.add(new_file)
+        db.session.commit()
+        return jsonify({'message': 'File uploaded successfully'})
+    
 @app.route('/course', methods=['GET'])
 def course():
     if not session.get('user_login', False):
