@@ -68,6 +68,19 @@ def logout():
     return render_template('index.html')
 
 email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+@app.route('/watermark', methods=['GET'])
+def watermark():
+    if not session.get('user_login', False):
+        return redirect(url_for('login_check'))
+    return render_template('watermark.html')
+
+@app.route('/generate', methods=['POST'])
+def generate():
+    if not request.form:
+        return "Error: not receive any text!"
+    text = request.form['text']
+    return "Hi what's up (%s)" % random.randint(0,100)
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     useremail = None
@@ -152,6 +165,12 @@ def detect():
 #     db.session.commit()
 
 #     return "File uploaded successfully!"
+
+@app.route('/course', methods=['GET'])
+def course():
+    if not session.get('user_login', False):
+            return redirect(url_for('login_check'))
+    return render_template('course.html')
 
 if __name__ == '__main__':
     with app.app_context():
