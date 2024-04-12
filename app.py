@@ -3,6 +3,42 @@ import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from numpy import arange
+from watermarking import demo_watermark as watermarking
+from argparse import Namespace
+args = Namespace()
+
+arg_dict = {
+    'run_gradio': False, 
+    'demo_public': False, 
+    'model_name_or_path': 'facebook/opt-125m', 
+    # 'model_name_or_path': 'facebook/opt-1.3b', 
+    # 'model_name_or_path': 'facebook/opt-2.7b', 
+    # 'model_name_or_path': 'facebook/opt-6.7b',
+    # 'model_name_or_path': 'facebook/opt-13b',
+    # 'load_fp16' : True,
+    'load_fp16' : False,
+    'prompt_max_length': None, 
+    'max_new_tokens': 200, 
+    'generation_seed': 123, 
+    'use_sampling': True, 
+    'n_beams': 1, 
+    'sampling_temp': 0.7, 
+    'use_gpu': True, 
+    'seeding_scheme': 'simple_1', 
+    'gamma': 0.25, 
+    'delta': 2.0, 
+    'normalizers': '', 
+    'ignore_repeated_bigrams': False, 
+    'detection_z_threshold': 4.0, 
+    'select_green_tokens': True,
+    'skip_model_load': False,
+    'seed_separately': True,
+}
+
+args.__dict__.update(arg_dict)
+args.normalizers = (args.normalizers.split(",") if args.normalizers else [])
+model, tokenizer, device = watermarking.load_model(args)
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = '123'
@@ -77,7 +113,8 @@ def generate():
     if not request.form:
         return "Error: not receive any text!"
     text = request.form['text']
-    return "Hi what's up (%s)" % random.randint(0,100)
+    _, _, decoded_output_without_watermark, decoded_output_with_watermark, _ = watermarking.generate(text, args, model=model, device=device, tokenizer=tokenizer)
+    return decoded_output_with_watermark
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
