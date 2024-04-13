@@ -9,3 +9,7 @@ connexion[flask]
 flask
 PyYaml
 flask_cors
+gradio
+nltk
+scipy
+tokenizers
