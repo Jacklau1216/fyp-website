@@ -13,3 +13,5 @@ gradio
 nltk
 scipy
 tokenizers
+python-docx
+PyPDF2
