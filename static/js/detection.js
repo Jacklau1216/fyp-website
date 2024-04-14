@@ -87,7 +87,7 @@ function VisualizeResult(wordsData, tips) {
             }
         }
         // Generate HTML content for each chunk, including a data attribute for the index
-        htmlContent += `<div class="chunk" style="background-color: ${color}; text-align: justify;" data-index="${index}">${data.text}</div>`;
+        htmlContent += `<div class="chunk" style="text-align: left;"><span class="chunk_text" style="background-color: ${color};" data-index="${index}">${data.text}</span></div>`;
     });
 
     htmlContent += '</div>';
@@ -99,7 +99,7 @@ function VisualizeResult(wordsData, tips) {
     document.body.appendChild(tooltip);
 
     // Add event listeners for each token
-    container.querySelectorAll('.chunk').forEach(token => {
+    container.querySelectorAll('.chunk_text').forEach(token => {
     token.addEventListener('mouseenter', (e) => {
         const index = token.getAttribute('data-index');
         const tip = tips[index];

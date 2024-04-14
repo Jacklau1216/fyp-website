@@ -97,7 +97,7 @@ class EnsembleDectector:
     token_is_AI = 0
     chunk_is_AI_probability = []
     for chunk in chunks:
-      print(chunk)
+      #print(chunk)
       gpt_perplexity, gpt_average_perplexity, gpt_burstiness = self.gpt_analyse_text(chunk, self.gpt1tokenizer, self.gpt1model)
       gpt2_perplexity, gpt2_average_perplexity, gpt2_burstiness = self.gpt_analyse_text(chunk, self.gpt2tokenizer, self.gpt2model)
       perplexity_predict_result = self.clf.predict([[gpt2_perplexity, gpt2_average_perplexity, gpt2_burstiness, gpt_perplexity, gpt_average_perplexity, gpt_burstiness]])
@@ -110,7 +110,7 @@ class EnsembleDectector:
       for result in results:
         if result is not None:
           predict_result.append(result)
-      print(results)
+      #print(results)
       chunks_info = {
          "text": chunk,
          "result": 1 if sum(predict_result)/len(predict_result) >= 0.5 else 0,
@@ -123,10 +123,10 @@ class EnsembleDectector:
         overall_result = True
         token_is_AI = token_is_AI + len(self.enc.encode(chunk))
     text_is_AI_percentage = token_is_AI / total_token
-    print(overall_result)
-    print(chunks_predict_result)
-    print(text_is_AI_percentage)
-    print(chunk_is_AI_probability)
+    #print(overall_result)
+    #print(chunks_predict_result)
+    #print(text_is_AI_percentage)
+    #print(chunk_is_AI_probability)
     return overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability
 
   def text_split(self, text):
