@@ -51,6 +51,7 @@
         <button id="upload-button" class="btn btn-primary">Upload</button>
 
         <div id="result" class="mt-4"></div>
+        <div id="percentage" class="mt-4"></div>
         <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
             <label class="form-check-label" for="flexSwitchCheckDefault">Show GLTR Results</label>
@@ -63,6 +64,17 @@
                 <canvas id="top10Entropy"></canvas>
             </div>
             <div id="colorTextBox"></div>
+
+        </div>
+
+        <div id="ensemble_result" class="mt-4"></div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="llm_detailed_result_switch">
+            <label class="form-check-label" for="llm_detailed_result_switch">Show Ensemble LLM Detection Detailed Results</label>
+        </div>
+
+        <div class="ensemble_detector">
+            <div id="detailed_result"></div>
 
         </div>
 
