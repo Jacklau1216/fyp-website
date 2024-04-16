@@ -280,6 +280,12 @@ def course():
             return redirect(url_for('login_check'))
     return render_template('course.html')
 
+@app.route('/submission', methods=['GET'])
+def submission():
+    if not session.get('user_login', False):
+            return redirect(url_for('login_check'))
+    return render_template('submission.html')
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
