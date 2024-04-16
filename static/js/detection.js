@@ -52,7 +52,9 @@ $(document).ready(function() {
         });
     });
 
-    $('#detect-file-button').click(function(){
+    $('#detect-file-button').click(function(event){
+        
+        event.preventDefault(); // 阻止表單的默認提交行為
         var form_data = new FormData($('#upload-file')[0]);
         $.ajax({
             type: 'POST',
@@ -63,11 +65,9 @@ $(document).ready(function() {
             processData: false,
             success: function(data) {
                 console.log('Success!');
-
             },
         });
     })
-
 });
 
 function VisualizeResult(wordsData, tips) {

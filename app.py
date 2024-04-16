@@ -261,6 +261,7 @@ def detect_file():
             db.session.add(detection_file)
         db.session.commit()
         print(filename,str(overall_result))
+        return jsonify({'message': 'File detect successfully'})
         
 @app.route('/course', methods=['GET'])
 def course():
