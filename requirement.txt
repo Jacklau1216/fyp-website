@@ -5,9 +5,16 @@ transformers==4.38.2
 torch
 numpy
 connexion[swagger-ui]
+connexion[flask]
 flask
 PyYaml
 flask_cors
+gradio
+nltk
+scipy
+tokenizers
+python-docx
+PyPDF2
 pysbd==0.3.4
 clean-text==0.6.0
 scikit-learn==1.4.1.post1

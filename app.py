@@ -1,8 +1,16 @@
 import random
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, Blueprint
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.utils import secure_filename
 from numpy import arange
+import re
+import os
+from docx import Document
+from PyPDF2 import PdfReader
+
+UPLOAD_FOLDER = 'upload_file'
+ALLOWED_EXTENSIONS = {'txt','pdf','doc','docx'}
 from watermarking import demo_watermark as watermarking
 from argparse import Namespace
 args = Namespace()
@@ -44,29 +52,38 @@ model, tokenizer, device = watermarking.load_model(args)
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
 app.config['SECRET_KEY'] = '123'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 db = SQLAlchemy(app)
 
 
 
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True)
+    useremail = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
+    role = db.Column(db.Boolean) # 1: staff; 0: student
+    course = db.Column(db.String(100),nullable=True)
     
-    def __init__(self, username, password):
-        self.username = username
+    
+    def __init__(self, useremail, password):
+        self.useremail = useremail
         self.password = password
+        self.role = 1 if 'staff' in useremail else 0
+   
     
 class Text(db.Model):
     input_id = db.Column(db.Integer, primary_key=True)
     input_text = db.Column(db.String,nullable=False)
     detection_result = db.Column(db.Boolean,nullable=True)
     watermark_result = db.Column(db.String,nullable=True)
+
+class File(db.Model):
+    file_id = db.Column(db.Integer, primary_key=True)
+    input_file = db.Column(db.String,nullable=False)
+    detection_result = db.Column(db.Boolean,nullable=True)
+    watermark_result = db.Column(db.String,nullable=True)
     
-    # def __init__(self, input_text, detection_result, watermark_result):
-    #     self.input_text = input_text
-    #     self.detection_result = detection_result
-    #     self.watermark_result = watermark_result
         
 
 @app.route('/')
@@ -79,20 +96,20 @@ def login_check():
     if not request.form:
         return render_template('login.html')
 
-    username = request.form['username']
+    useremail = request.form['useremail']
     password = request.form['password']
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(useremail=useremail).first()
     if user and user.password == password:
         session['user_login'] = True
         flash("Login successfully", 'info')
         return redirect(url_for('llm_detection'))
     else:
-        flash('Incorrect username or password. Please try again.', 'error')
+        flash('Incorrect email or password. Please try again.', 'error')
         return render_template('login.html')
 
 
-@app.route('/llm_detection')
+@app.route('/llm_detection', methods=['GET', 'POST'])
 def llm_detection():
     if not session.get('user_login', False):
         return redirect(url_for('login_check'))
@@ -104,6 +121,7 @@ def logout():
     session['user_login'] = False
     return render_template('index.html')
 
+email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
 @app.route('/watermark', methods=['GET'])
 def watermark():
     if not session.get('user_login', False):
@@ -120,16 +138,16 @@ def generate():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    username = None
+    useremail = None
 
     if not request.form:
         return render_template('register.html')
 
-    username = request.form['username']
+    useremail = request.form['useremail']
     password = request.form['password']
     password2 = request.form['password2']
 
-    existing_user = User.query.filter_by(username=username).first()
+    existing_user = User.query.filter_by(useremail=useremail).first()
     if existing_user:
         flash('User name have already exist. Please try again.', 'error')
         return render_template('register.html')
@@ -138,7 +156,11 @@ def register():
         flash("Two password don't match. Please try again", 'error')
         return render_template('register.html')
 
-    new_user = User(username=username, password=password)
+    if not re.match(email_regex, useremail):
+        flash("Invalid email format. Please try again.", 'error')
+        return render_template('register.html')
+
+    new_user = User(useremail=useremail, password=password)
     db.session.add(new_user)
     db.session.commit()
     session['user_login'] = True
@@ -184,21 +206,63 @@ def detect():
 
     return [str(overall_result).capitalize(), text_is_AI_percentage, chunks_predict_result, chunk_is_AI_probability]
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    content = request.form['content']
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        existing_file = File.query.filter_by(input_file=filename).first()
+        if not existing_file:
+            detection_file = File(input_file=filename)
+            db.session.add(detection_file)
+        db.session.commit()
+        print("uploaded"+filename)
+        return jsonify({'message': 'File uploaded successfully'})
 
-    existing_text = Text.query.filter_by(input_text=content).first()
-    if existing_text:
-        existing_text.watermark_result = "Generating"
-    else:
-        text_entry = Text(input_text=content, watermark_result="Generating")
-        db.session.add(text_entry)
-
-    db.session.commit()
-
-    return "File uploaded successfully!"
-
+@app.route('/detect_file', methods=['POST'])
+def detect_file():       
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file_content = ""
+        if filename.endswith('.txt'):
+            # Read the content of the TXT file
+            with open(file_path, 'r') as f:
+                file_content = f.read()
+        elif filename.endswith('.doc') or filename.endswith('.docx'):
+            # Read the content of the DOC/DOCX file
+            doc = Document(file_path)
+            for paragraph in doc.paragraphs:
+                file_content += paragraph.text + "\n"
+        elif filename.endswith('.pdf'):
+            # Read the content of the PDF file
+            reader = PdfReader(file_path)
+            number_of_pages = len(reader.pages)
+            page = reader.pages[0]
+            file_content = page.extract_text()
+        else:
+            flash('Invalid file type! Only TXT, DOC, DOCX, and PDF files are allowed.', 'error')
+        # Print the file content
+        overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(file_content)
+        
+        
+        existing_file = File.query.filter_by(input_file=filename).first()
+        if existing_file:
+            existing_file.detection_result = overall_result
+        else:
+            detection_file = File(input_file=filename, detection_result=overall_result)
+            db.session.add(detection_file)
+        db.session.commit()
+        print(filename,str(overall_result))
+        return jsonify({'message': 'File detect successfully'})
+        
 @app.route('/course', methods=['GET'])
 def course():
     if not session.get('user_login', False):

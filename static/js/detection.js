@@ -35,36 +35,39 @@ $(document).ready(function() {
             }
         });
     });
-    // Update the label text when a file is selected
-    $("#file-input").change(function() {
-        var fileName = $(this).val().split('\\').pop();
-        $(".custom-file-label").text(fileName);
-    });
-    $("#upload-button").click(function() {
-        var fileInput = document.getElementById("file-input");
-        var file = fileInput.files[0];
-        if (file) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var content = e.target.result;
-                $.ajax({
-                    url: "/upload",
-                    type: "POST",
-                    data: { content: content },
-                    success: function(response) {
-                        console.log("File uploaded successfully!");
-                        $(".custom-file-label").text("Choose file");
+    
+    $('#upload-file-btn').click(function() {
+        var form_data = new FormData($('#upload-file')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/upload_file',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                console.log('Success!');
 
-                        $(".flash-message").html('<div class="alert alert-success alert-dismissible fade show" role="alert">File uploaded successfully!</div>');
-                    },
-                    error: function(xhr, status, error) {
-                        console.log(error);
-                    }
-                });
-            };
-            reader.readAsText(file);
-        }
+            },
+        });
     });
+
+    $('#detect-file-button').click(function(event){
+        
+        event.preventDefault(); // 阻止表單的默認提交行為
+        var form_data = new FormData($('#upload-file')[0]);
+        $.ajax({
+            type: 'POST',
+            url: '/detect_file',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            success: function(data) {
+                console.log('Success!');
+            },
+        });
+    })
 });
 
 function VisualizeResult(wordsData, tips) {
