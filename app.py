@@ -121,7 +121,7 @@ def logout():
     session['user_login'] = False
     return render_template('index.html')
 
-email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
+
 @app.route('/watermark', methods=['GET'])
 def watermark():
     if not session.get('user_login', False):
@@ -139,6 +139,7 @@ def generate():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     useremail = None
+    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'
 
     if not request.form:
         return render_template('register.html')
@@ -169,8 +170,10 @@ def register():
 
 
 @app.route("/GLTR_detect", methods=['POST'])
-def GLTR_detect():
-    text = request.form['text']
+def GLTR_detect(input_text = None):
+    text = input_text
+    if not text:
+        text = request.form['text']
     import myGLTR
     gpt2 = myGLTR.GPT2()
     data = gpt2.analyze(text, 40)
@@ -187,7 +190,9 @@ def GLTR_detect():
     m["pop_up_display"] = [(topk, prob, fp) for ((topk, prob), fp) in zip(data["real_topk"], gpt2.model.lm.getFracp(data["real_topk"],data["pred_topk"]))]
 
     m["countArray"] = [10,100,1000,10000000]
-    return jsonify(m)
+    if not input_text:
+        return jsonify(m)
+    return m
 
 
 @app.route('/detect', methods=['POST'])
@@ -261,7 +266,13 @@ def detect_file():
             db.session.add(detection_file)
         db.session.commit()
         print(filename,str(overall_result))
-        return jsonify({'message': 'File detect successfully'})
+        result =  GLTR_detect(file_content)
+        result['0'] = str(overall_result).capitalize()
+        result['1'] = text_is_AI_percentage
+        result['2'] = chunks_predict_result
+        result['3'] = chunk_is_AI_probability
+        return jsonify(result)
+        # return jsonify({'message': 'File detect successfully'})
         
 @app.route('/course', methods=['GET'])
 def course():
