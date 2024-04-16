@@ -10,7 +10,7 @@ from docx import Document
 from PyPDF2 import PdfReader
 
 UPLOAD_FOLDER = 'upload_file'
-ALLOWED_EXTENSIONS = {'txt'}
+ALLOWED_EXTENSIONS = {'txt','pdf','doc','docx'}
 from watermarking import demo_watermark as watermarking
 from argparse import Namespace
 args = Namespace()
@@ -210,14 +210,27 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
            
-@app.route('/detect_file', methods=['POST'])
-def detect_file():
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
     if request.method == 'POST':
-        detection_result = bool(random.getrandbits(1))
         file = request.files['file']
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
+        existing_file = File.query.filter_by(input_file=filename).first()
+        if not existing_file:
+            detection_file = File(input_file=filename)
+            db.session.add(detection_file)
+        db.session.commit()
+        print("uploaded"+filename)
+        return jsonify({'message': 'File uploaded successfully'})
+
+@app.route('/detect_file', methods=['POST'])
+def detect_file():       
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file_content = ""
         if filename.endswith('.txt'):
             # Read the content of the TXT file
@@ -237,20 +250,18 @@ def detect_file():
         else:
             flash('Invalid file type! Only TXT, DOC, DOCX, and PDF files are allowed.', 'error')
         # Print the file content
-        print(file_content,str(detection_result))
+        overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(file_content)
+        
         
         existing_file = File.query.filter_by(input_file=filename).first()
         if existing_file:
-            existing_file.detection_result = detection_result
+            existing_file.detection_result = overall_result
         else:
-            detection_file = File(input_file=filename, detection_result=detection_result)
+            detection_file = File(input_file=filename, detection_result=overall_result)
             db.session.add(detection_file)
         db.session.commit()
-        return jsonify({'message': 'File uploaded successfully'})
-
-
-   
-
+        print(filename,str(overall_result))
+        
 @app.route('/course', methods=['GET'])
 def course():
     if not session.get('user_login', False):
