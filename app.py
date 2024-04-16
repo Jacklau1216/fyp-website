@@ -14,6 +14,8 @@ ALLOWED_EXTENSIONS = {'txt'}
 from watermarking import demo_watermark as watermarking
 from argparse import Namespace
 args = Namespace()
+from detector.ensemble_detector import EnsembleDectector
+detector = EnsembleDectector()
 
 arg_dict = {
     'run_gradio': False, 
@@ -191,18 +193,18 @@ def GLTR_detect():
 @app.route('/detect', methods=['POST'])
 def detect():
     text = request.form['text']
-    detection_result = bool(random.getrandbits(1))
+    overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(text)
 
     existing_text = Text.query.filter_by(input_text=text).first()
     if existing_text:
-        existing_text.detection_result = detection_result
+        existing_text.detection_result = overall_result
     else:
-        detection_text = Text(input_text=text, detection_result=detection_result)
+        detection_text = Text(input_text=text, detection_result=overall_result)
         db.session.add(detection_text)
 
     db.session.commit()
 
-    return str(detection_result).capitalize()
+    return [str(overall_result).capitalize(), text_is_AI_percentage, chunks_predict_result, chunk_is_AI_probability]
 
 def allowed_file(filename):
     return '.' in filename and \
