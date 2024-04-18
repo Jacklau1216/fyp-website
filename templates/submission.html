@@ -1,0 +1,39 @@
+<!-- submission.html -->
+{% extends 'base.html' %} {% block title %}Submission{% endblock %} {%block
+    style %}
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/submission.css') }}"
+    />
+    {% endblock %} {% block script %}
+    <script src="{{ url_for('static', filename='js/submission.js') }}"></script>
+    
+    {% endblock %} {% block content%}
+    <div class="container">
+      <h2 class="mb-3">Submission</h2>
+    
+      <div class="search-bar">
+        <input
+          id="search-input"
+          type="text"
+          class="form-control"
+          placeholder="Search Course"
+        />
+        <button id="search-button" class="btn btn-primary">Search</button>
+      </div>
+      <table class="table mt-4">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Lecturer ID</th>
+            <th>Submission</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody id="results-table">
+          <!-- Results will be added dynamically here -->
+        </tbody>
+      </table>
+    </div>
+    {% endblock %}
+    
