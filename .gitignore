@@ -3,4 +3,5 @@ __pycache__
 .DS_Store
 /upload_file
 tempCodeRunnerFile.py
-
+data
+summaries_new

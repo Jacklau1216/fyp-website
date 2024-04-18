@@ -127,7 +127,7 @@ class EnsembleDectector:
     #print(chunks_predict_result)
     #print(text_is_AI_percentage)
     #print(chunk_is_AI_probability)
-    return overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability
+    return results
 
   def text_split(self, text):
     segmenter = Segmenter(language='en', clean=False)
