@@ -209,6 +209,12 @@ def GLTR_detect(input_text = None):
 @app.route('/detect', methods=['POST'])
 def detect():
     text = request.form['text']
+    args.normalizers = (args.normalizers.split(",") if args.normalizers else [])
+    model, tokenizer, device = watermarking.load_model(args)
+    args.default_prompt = text
+    watermark_detection_result = watermarking.detect(text,args,device=device, 
+                                                 tokenizer=tokenizer)
+    watermark_result_binary = watermark_detection_result[0][6][1]
     overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(text)
 
     existing_text = Text.query.filter_by(input_text=text).first()
@@ -220,7 +226,7 @@ def detect():
 
     db.session.commit()
 
-    return [str(overall_result).capitalize(), text_is_AI_percentage, chunks_predict_result, chunk_is_AI_probability]
+    return [str(overall_result).capitalize(), text_is_AI_percentage, chunks_predict_result, chunk_is_AI_probability,watermark_result_binary]
 
 def allowed_file(filename):
     return '.' in filename and \
