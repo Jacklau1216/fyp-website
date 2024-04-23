@@ -223,7 +223,7 @@ def upload_file():
         file.save(file_path)
         existing_file = File.query.filter_by(input_file=filename).first()
         if not existing_file:
-            detection_file = File(input_file=filename)
+            detection_file = File(input_file=filename,course='CPEG4901')
             db.session.add(detection_file)
         db.session.commit()
         print("uploaded"+filename)
@@ -278,10 +278,8 @@ def course():
     if not session.get('user_login', False):
         return redirect(url_for('login_check'))
     
-    # Fetch all records from the File table
     files = File.query.all()
     
-    # Convert the records to a list of dictionaries
     files_list = []
     for file in files:
         file_dict = {
@@ -293,7 +291,6 @@ def course():
         }
         files_list.append(file_dict)
     
-    # Return the records as JSON response
     return render_template('course.html', files=files_list)
 
 @app.route('/submission', methods=['GET'])

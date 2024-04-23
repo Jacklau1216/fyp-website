@@ -7,12 +7,22 @@ style %}
 />
 {% endblock %} {% block script %}
 <script src="{{ url_for('static', filename='js/course.js') }}"></script>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#searchInput").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $("#results-table tbody tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            });
+        });
+    </script>
 {% endblock %} {% block content%}
 <div class="container">
   <h2 class="mb-3">Course Review</h2>
 
-  <div class="search-bar">
+  <!-- <div class="search-bar">
     <input
       id="search-input"
       type="text"
@@ -20,8 +30,9 @@ style %}
       placeholder="Search Course"
     />
     <button id="search-button" class="btn btn-primary">Search</button>
-  </div>
-  <table class="table mt-4">
+  </div> -->
+  <input type="text" id="searchInput" placeholder="Search course">
+  <table class="table mt-4" id="results-table">
     <thead>
       <tr>
         <th>Course</th>
