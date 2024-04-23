@@ -113,6 +113,7 @@ def login_check():
     user = User.query.filter_by(useremail=useremail).first()
     if user and user.password == password:
         session['user_login'] = True
+        session['id'] = useremail
         flash("Login successfully", 'info')
         return redirect(url_for('llm_detection'))
     else:
@@ -176,6 +177,7 @@ def register():
     db.session.add(new_user)
     db.session.commit()
     session['user_login'] = True
+    session['id'] = useremail
     flash("Register successfully", 'info')
     return redirect(url_for('llm_detection'))
 
@@ -233,18 +235,22 @@ def upload_file():
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
-        existing_file = File.query.filter_by(input_file=filename).first()
+        existing_file = File.query.filter_by(input_file=filename,course=request.form['course'], student_id=request.form['id']).first()
         if not existing_file:
-            detection_file = File(input_file=filename,course='CPEG4901')
+            print("start detecting")
+            result = detect_file(file, 'flask')           
+            detection_file = File(input_file=filename,course=request.form['course'], student_id=request.form['id'], detection_result=result)
             db.session.add(detection_file)
         db.session.commit()
-        print("uploaded"+filename)
+        print("uploaded "+filename)
         return jsonify({'message': 'File uploaded successfully'})
 
 @app.route('/detect_file', methods=['POST'])
-def detect_file():       
+def detect_file(file=None, method=None):      
     if request.method == 'POST':
-        file = request.files['file']
+        file = file
+        if not file:
+            file = request.files['file']
         filename = secure_filename(file.filename)
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file_content = ""
@@ -268,14 +274,15 @@ def detect_file():
         # Print the file content
         overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(file_content)
         
-        
-        existing_file = File.query.filter_by(input_file=filename).first()
-        if existing_file:
-            existing_file.detection_result = overall_result
-        else:
-            detection_file = File(input_file=filename, detection_result=overall_result)
-            db.session.add(detection_file)
-        db.session.commit()
+        if method=='flask':
+            return overall_result        
+        # existing_file = File.query.filter_by(input_file=filename).first()
+        # if existing_file:
+        #     existing_file.detection_result = overall_result
+        # else:
+        #     detection_file = File(input_file=filename, detection_result=overall_result)
+        #     db.session.add(detection_file)
+        # db.session.commit()
         print(filename,str(overall_result))
         result =  GLTR_detect(file_content)
         result['0'] = str(overall_result).capitalize()
@@ -309,7 +316,21 @@ def course():
 def submission():
     if not session.get('user_login', False):
             return redirect(url_for('login_check'))
-    return render_template('submission.html')
+        
+    # courses = File.query.all()
+    user = User.query.filter_by(useremail=session.get('id', None)).first()
+    courses = user.course.split(',')
+    
+    course_list = []
+    for course in courses:
+        d_result = File.query.filter_by(course=course, student_id=session.get('id', None)).first()
+        course_dict = {
+            'course': course,
+            'detection_result': d_result.detection_result if d_result else "_",
+        }
+        course_list.append(course_dict)
+    
+    return render_template('submission.html', courses=course_list)
 
 if __name__ == '__main__':
     with app.app_context():
