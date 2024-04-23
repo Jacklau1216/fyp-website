@@ -26,12 +26,19 @@ style %}
       <tr>
         <th>Course</th>
         <th>Student ID</th>
-        <th>Text</th>
+        <th>File</th>
         <th>Result</th>
       </tr>
     </thead>
     <tbody id="results-table">
-      <!-- Results will be added dynamically here -->
+      {% for file in files %}
+            <tr>
+                <td>{{ file.course }}</td>
+                <td>{{ file.student_id }}</td>
+                <td>{{ file.input_file }}</td>
+                <td>{{ file.detection_result }}</td>
+            </tr>
+            {% endfor %}
     </tbody>
   </table>
 </div>

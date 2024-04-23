@@ -76,14 +76,13 @@ class Text(db.Model):
     input_id = db.Column(db.Integer, primary_key=True)
     input_text = db.Column(db.String,nullable=False)
     detection_result = db.Column(db.Boolean,nullable=True)
-    watermark_result = db.Column(db.String,nullable=True)
 
 class File(db.Model):
     file_id = db.Column(db.Integer, primary_key=True)
     input_file = db.Column(db.String,nullable=False)
     detection_result = db.Column(db.Boolean,nullable=True)
-    watermark_result = db.Column(db.String,nullable=True)
-    
+    student_id = db.Column(db.String)
+    course = db.Column(db.String(100),nullable=True)
         
 
 @app.route('/')
@@ -277,8 +276,25 @@ def detect_file():
 @app.route('/course', methods=['GET'])
 def course():
     if not session.get('user_login', False):
-            return redirect(url_for('login_check'))
-    return render_template('course.html')
+        return redirect(url_for('login_check'))
+    
+    # Fetch all records from the File table
+    files = File.query.all()
+    
+    # Convert the records to a list of dictionaries
+    files_list = []
+    for file in files:
+        file_dict = {
+            'file_id': file.file_id,
+            'input_file': file.input_file,
+            'detection_result': file.detection_result,
+            'student_id': file.student_id,
+            'course': file.course,
+        }
+        files_list.append(file_dict)
+    
+    # Return the records as JSON response
+    return render_template('course.html', files=files_list)
 
 @app.route('/submission', methods=['GET'])
 def submission():
