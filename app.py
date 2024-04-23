@@ -1,5 +1,4 @@
 import random
-
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -8,6 +7,7 @@ import re
 import os
 from docx import Document
 from PyPDF2 import PdfReader
+from enum import Enum
 
 UPLOAD_FOLDER = 'upload_file'
 ALLOWED_EXTENSIONS = {'txt','pdf','doc','docx'}
@@ -57,19 +57,31 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1000 * 1000
 db = SQLAlchemy(app)
 
 
-
+class Course(Enum):
+    COMP4651 = "COMP4651"
+    COMP4211 = "COMP4211"
+    COMP3711 = "COMP3711"
+    COMP4331 = "COMP4331"
+all_courses = list(Course)
+random.shuffle(all_courses)
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     useremail = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     role = db.Column(db.Boolean) # 1: staff; 0: student
-    course = db.Column(db.String(100),nullable=True)
+    course = db.Column(db.String,nullable=True)
     
     
     def __init__(self, useremail, password):
         self.useremail = useremail
         self.password = password
         self.role = 1 if 'staff' in useremail else 0
+        
+        all_courses = list(Course)
+        random.shuffle(all_courses)
+        num_courses = min(3, len(all_courses))  # Select a maximum of 3 courses
+        selected_courses = random.sample(all_courses, num_courses)
+        self.course = ','.join([course.value for course in selected_courses])
    
     
 class Text(db.Model):
