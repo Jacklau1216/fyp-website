@@ -145,6 +145,8 @@ def generate():
     if not request.form:
         return "Error: not receive any text!"
     text = request.form['text']
+    text = "Rephrase the following text: "+text
+
     _, _, decoded_output_without_watermark, decoded_output_with_watermark, _ = watermarking.generate(text, args, model=model, device=device, tokenizer=tokenizer)
     return decoded_output_with_watermark
 
@@ -216,7 +218,7 @@ def detect():
     args.default_prompt = text
     watermark_detection_result = watermarking.detect(text,args,device=device, 
                                                  tokenizer=tokenizer)
-    watermark_result_binary = watermark_detection_result[0][6][1] #return Human/Unwatermarked or else
+    watermark_result_binary = watermark_detection_result[0][6][1] 
     overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(text)
 
     existing_text = Text.query.filter_by(input_text=text).first()
@@ -278,6 +280,12 @@ def detect_file(file=None, method=None):
         else:
             flash('Invalid file type! Only TXT, DOC, DOCX, and PDF files are allowed.', 'error')
         # Print the file content
+        args.normalizers = (args.normalizers.split(",") if args.normalizers else [])
+        model, tokenizer, device = watermarking.load_model(args)
+        args.default_prompt = file_content
+        watermark_detection_result = watermarking.detect(file_content,args,device=device, 
+                                                    tokenizer=tokenizer)
+        watermark_result_binary = watermark_detection_result[0][6][1] 
         overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(file_content)
         
         if method=='flask':
@@ -295,6 +303,7 @@ def detect_file(file=None, method=None):
         result['1'] = text_is_AI_percentage
         result['2'] = chunks_predict_result
         result['3'] = chunk_is_AI_probability
+        result['4'] = watermark_result_binary
         return jsonify(result)
         # return jsonify({'message': 'File detect successfully'})
         
