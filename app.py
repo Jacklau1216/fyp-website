@@ -214,7 +214,7 @@ def detect():
     args.default_prompt = text
     watermark_detection_result = watermarking.detect(text,args,device=device, 
                                                  tokenizer=tokenizer)
-    watermark_result_binary = watermark_detection_result[0][6][1]
+    watermark_result_binary = watermark_detection_result[0][6][1] #return Human/Unwatermarked or else
     overall_result, chunks_predict_result, text_is_AI_percentage, chunk_is_AI_probability = detector.detect_text(text)
 
     existing_text = Text.query.filter_by(input_text=text).first()
