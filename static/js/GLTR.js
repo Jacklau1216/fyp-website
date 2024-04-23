@@ -165,6 +165,6 @@ document.addEventListener('mousemove', function(event) {
 
         const mouseX = event.clientX;
         const mouseY = event.clientY;
-        console.log(`Mouse X: ${mouseX}, Mouse Y: ${mouseY}`);
+        // console.log(`Mouse X: ${mouseX}, Mouse Y: ${mouseY}`);
     }
 });
