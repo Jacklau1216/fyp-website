@@ -37,22 +37,59 @@
         <a href="{{ url_for('login_check') }}" class="btn btn-primary float-right">Logout</a>
     </div> -->
     <div id="llm-container" class="mt-4">
-        <h2 class="mb-3">Enter Text</h2>
-        <div class="form-group">
-            <textarea id="text-input" class="form-control" rows="5" placeholder="Enter your paragraph"></textarea>
-        </div>
-        <button id="detect-button" class="btn btn-primary">Detect</button>
+        <!--
+            
+            <h2 class="mb-3">Enter Text</h2>
+            <div class="form-group">
+                <textarea id="text-input" class="form-control" rows="5" placeholder="Enter your paragraph"></textarea>
+            </div>
+            <button id="detect-button" class="btn btn-primary">Detect</button>
+            
+            <h2 class="mt-4 mb-3">Upload File</h2>
+            <form id="upload-file" method="post" enctype="multipart/form-data">
+                <fieldset>
+                    <input name="file" type="file"  class="form-control">
+                </fieldset>
+                <fieldset>
+                    <button id="upload-file-btn" type="button" class="btn btn-primary">Upload</button>
+                    <button id="detect-file-button" typpe = "button"class="btn btn-primary">Detect</button>
+                </fieldset>
+            </form>
+        -->
+        <!--
+        -->
+        <ul class="nav nav-tabs mt-4" id="myTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="text-tab" data-bs-toggle="tab" href="#text" role="tab" aria-controls="text" aria-selected="true">Text</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="file-tab" data-bs-toggle="tab" href="#file" role="tab" aria-controls="file" aria-selected="false">File</a>
+            </li>
+        </ul>
+    
+        <div class="tab-content mt-4" id="myTabContent">
+            <div class="tab-pane fade show active" id="text" role="tabpanel" aria-labelledby="text-tab">
+                <h2 class="mb-3">Enter Text</h2>
+                <div class="form-group">
+                    <textarea id="text-input" class="form-control" rows="5" placeholder="Enter your paragraph"></textarea>
+                </div>
+                <button id="detect-button" class="btn btn-primary">Detect</button>
+            </div>
+            
+            <div class="tab-pane fade" id="file" role="tabpanel" aria-labelledby="file-tab">
+                <h2 class="mt-4 mb-3">Upload File</h2>
+                <form id="upload-file" method="post" enctype="multipart/form-data">
+                    <fieldset>
+                        <input name="file" type="file"  class="form-control">
+                    </fieldset>
+                    <fieldset>
+                        <button id="detect-file-button" type ="button" class="btn btn-primary">Detect</button>
+                    </fieldset>
+                </form>
+            </div>
+        </div> 
 
-        <h2 class="mt-4 mb-3">Upload File</h2>
-        <form id="upload-file" method="post" enctype="multipart/form-data">
-            <fieldset>
-                <input name="file" type="file"  class="form-control">
-            </fieldset>
-            <fieldset>
-                <button id="upload-file-btn" type="button" class="btn btn-primary">Upload</button>
-                <button id="detect-file-button" typpe = "button"class="btn btn-primary">Detect</button>
-            </fieldset>
-        </form>
+        
         
         <div id="result" class="mt-4"></div>
         <div id="percentage" class="mt-4"></div>
