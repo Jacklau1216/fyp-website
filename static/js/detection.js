@@ -135,17 +135,5 @@ function VisualizeResult(wordsData, tips) {
 document.addEventListener('DOMContentLoaded', () => {
     const ensembleSwitch = document.getElementById('llm_detailed_result_switch');
     const ensembleResults = document.querySelector('.ensemble_detector');
-
-    // Optionally, initially hide the ensemble_detector results
-    ensembleResults.style.display = 'none';
-
-    ensembleSwitch.addEventListener('change', () => {
-        if (ensembleSwitch.checked) {
-            // Show the ensemble_detector results if the switch is checked
-            ensembleResults.style.display = 'flex';
-        } else {
-            // Hide the ensemble_detector results if the switch is not checked
-            ensembleResults.style.display = 'none';
-        }
-    });
+    ensembleResults.style.display = 'flex';
 });

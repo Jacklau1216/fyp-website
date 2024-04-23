@@ -139,19 +139,7 @@ function drawColorTextBox(wordsData, countArray, tips) {
 document.addEventListener('DOMContentLoaded', () => {
     const gltrSwitch = document.getElementById('flexSwitchCheckDefault');
     const gltrResults = document.querySelector('.GLTR');
-
-    // Optionally, initially hide the GLTR results
-    gltrResults.style.display = 'none';
-
-    gltrSwitch.addEventListener('change', () => {
-        if (gltrSwitch.checked) {
-            // Show the GLTR results if the switch is checked
-            gltrResults.style.display = 'flex';
-        } else {
-            // Hide the GLTR results if the switch is not checked
-            gltrResults.style.display = 'none';
-        }
-    });
+    gltrResults.style.display = 'flex';
 });
 
 let lastExecutionTime = 0;
